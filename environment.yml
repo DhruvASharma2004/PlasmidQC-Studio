@@ -1,0 +1,12 @@
+name: plasmidqc
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - matplotlib>=3.7
+  - numpy>=1.24
+  - pandas>=2.0
+  - pytest>=7.4
+  - pip
+  - pip:
+      - streamlit>=1.30
