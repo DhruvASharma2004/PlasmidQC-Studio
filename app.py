@@ -12,6 +12,7 @@ dashboard.
 
 from __future__ import annotations
 
+import inspect
 import io
 import os
 
@@ -22,6 +23,19 @@ from src.analyzer import (annotate_plasmid, design_amplicon_primers,
                           find_restriction_sites, gc_content, read_fasta,
                           reverse_complement)
 from src.visualizer import plot_plasmid_dashboard
+
+def _stretch(fn) -> dict:
+    """Return the full-width keyword this Streamlit release understands.
+
+    Streamlit renamed ``use_container_width=True`` to ``width="stretch"``; the
+    old spelling is deprecated and slated for removal. Resolving it from the
+    signature keeps the app working on both old and new releases without
+    pinning a floor version.
+    """
+    if "width" in inspect.signature(fn).parameters:
+        return {"width": "stretch"}
+    return {"use_container_width": True}
+
 
 DEFAULT_FASTA = os.path.join("data", "pSynBio_sfGFP_01.fasta")
 ALT_FASTA = os.path.join("data", "pBioBrick_mCherry_AmpR.fasta")
@@ -118,7 +132,7 @@ c5.metric("Primer pairs", len(pairs),
 st.subheader("Plasmid map and composition profile")
 fig = plot_plasmid_dashboard(name, seq, features, hits, window=window,
                              step=step)
-st.pyplot(fig, use_container_width=True)
+st.pyplot(fig, **_stretch(st.pyplot))
 
 buf = io.BytesIO()
 fig.savefig(buf, format="png", dpi=300, bbox_inches="tight",
@@ -132,15 +146,15 @@ tab_feat, tab_digest, tab_primers, tab_seq = st.tabs(
 
 with tab_feat:
     df = pd.DataFrame([f.as_dict() for f in features])
-    st.dataframe(df.drop(columns=["color"]), use_container_width=True,
-                 hide_index=True)
+    st.dataframe(df.drop(columns=["color"]), hide_index=True,
+                 **_stretch(st.dataframe))
     st.download_button("Download annotations CSV",
                        df.to_csv(index=False).encode(),
                        file_name=f"{name}_annotations.csv", mime="text/csv")
 
 with tab_digest:
     df = pd.DataFrame([h.as_dict() for h in hits])
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    st.dataframe(df, hide_index=True, **_stretch(st.dataframe))
     gg = [h.enzyme for h in hits
           if h.enzyme_class == "Type IIS" and h.n_sites == 0]
     if gg:
@@ -157,7 +171,7 @@ with tab_digest:
 with tab_primers:
     rows = [row for pair in pairs for row in pair.as_rows()]
     df = pd.DataFrame(rows)
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    st.dataframe(df, hide_index=True, **_stretch(st.dataframe))
     st.caption("Tm from SantaLucia (1998) unified nearest-neighbor "
                "parameters, 50 mM Na+, 250 nM primer.")
     st.download_button("Download primers CSV",

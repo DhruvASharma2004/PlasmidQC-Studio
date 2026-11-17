@@ -3,7 +3,7 @@
 **Automated circular plasmid annotation, restriction digest QC, and nearest-neighbor primer design.**
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/pytest-51%20passed-brightgreen.svg)](tests/test_analyzer.py)
+[![Tests](https://img.shields.io/badge/pytest-57%20passed-brightgreen.svg)](tests/test_analyzer.py)
 [![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey.svg)](#license)
 
 PlasmidQC-Studio takes a circular plasmid FASTA and returns the three things
@@ -80,7 +80,7 @@ Three design decisions distinguish it from a weekend script:
 | `src/visualizer.py` | 300-DPI two-panel dashboard: circular map + composition profile |
 | `cli.py` | Batch pipeline exporting 3 CSVs and 1 PNG per plasmid |
 | `app.py` | Streamlit app: upload, interactive thresholds, live tables and figure |
-| `tests/` | 51 pytest unit tests over the analytical core |
+| `tests/` | 57 pytest tests: analytical core + Streamlit app smoke tests |
 
 ---
 
@@ -393,7 +393,7 @@ conversion to a `pandas.DataFrame`.
 ## Testing
 
 ```bash
-pytest -q          # 51 passed
+pytest -q          # 57 passed
 pytest -v          # per-test detail
 ```
 
@@ -416,6 +416,11 @@ The suite covers the analytical core, not just happy paths:
 - **Integration** — every annotated span re-extracts its own motif, every CDS
   starts with ATG and ends in a stop codon on the correct strand, and every
   designed primer is an exact substring of one strand of the template.
+- **Streamlit app** (`tests/test_app.py`) — the app is executed through
+  Streamlit's own `AppTest` harness, so a runtime error in the UI layer fails
+  the suite: default load, metric values, the ORF-threshold slider changing the
+  call count, the flank and GC-window sliders, the second bundled plasmid, and
+  the empty-upload path. Skipped automatically when Streamlit is absent.
 
 ---
 
@@ -434,7 +439,8 @@ PlasmidQC-Studio/
 ├── assets/
 │   └── pSynBio_sfGFP_01_map_dashboard.png
 ├── tests/
-│   └── test_analyzer.py  # 51 pytest unit tests
+│   ├── test_analyzer.py  # 51 unit tests over the analytical core
+│   └── test_app.py       # 6 Streamlit app smoke tests
 ├── cli.py                # batch pipeline
 ├── app.py                # Streamlit web app
 ├── environment.yml
